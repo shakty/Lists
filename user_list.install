@@ -1,0 +1,111 @@
+<?php
+
+include_once 'includes/utils.inc';
+
+/**
+* Implementation of hook_schema().
+*/
+function user_list_schema() {
+	//table for saved searches 
+	$schema[user_list_get_save_table_name()] = array(
+		'description' => 'Stores searches.',
+		'fields' => array(
+			'sid' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Primary Key: Unique search ID.',
+			),
+			'uid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Secondary Key: User ID who has saved the search.',
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => 55,
+				'default' => '',
+				'description' => 'Machine readable name of this search.',
+			),
+			'search' => array(
+				'type' => 'varchar',
+				'length' => 1024,
+				'default' => '',
+				'description' => 'The text of this search.',
+			),
+			'url' => array(
+				'type' => 'varchar',
+				'length' => 1024,
+				'default' => '',
+				'description' => 'The url before search is done.',
+			),	
+		),
+	    'primary key' => array('sid'),
+	    'unique keys' => array('name' => array('name'))
+	);
+	
+	
+	//table for user data to hide
+	$schema[user_list_get_user_data_table_name()] = array(
+		'description' => 'Stores list of user data to be hidden.',
+		'fields' => array(
+			'data' => array(
+				'type' => 'varchar',
+				'length' => 1024,
+				'default' => '',
+				'description' => 'user data name.',
+			),
+			'uid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'User ID who has saved the field data.',
+			),
+		),
+	);
+	
+	//table for fields to hide
+	$schema[user_list_get_field_table_name()] = array(
+		'description' => 'Stores list of fields to be hidden.',
+		'fields' => array(
+			'fid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Field ID of the field.',
+			),
+			'uid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'User ID who has saved the field data.',
+			),
+		),
+	);
+	
+	return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function user_list_uninstall() {
+	drupal_uninstall_schema(user_list_get_save_table_name());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+?>
