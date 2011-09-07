@@ -3,7 +3,9 @@
 include_once 'includes/utils.inc';
 
 /**
+* 
 * Implementation of hook_schema().
+* @return array	the created schema
 */
 function user_list_schema() {
 	//table for saved searches 

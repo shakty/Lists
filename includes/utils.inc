@@ -1,6 +1,17 @@
 <?php
 
+/**
+ * 
+ * @file
+ * This file contains several helping functions that are used for the module 
+ */
 
+/**
+ * 
+ * creates an embedded menu with letters, roles, "all" and "newest" items
+ * @param array $args	list of arguments to use for the creation of the menu items
+ * @return string		themed menu
+ */
 function _user_list_embedded_menu($args = array()) {
   
   $items['all'] = array(
@@ -75,20 +86,25 @@ function _user_list_embedded_menu($args = array()) {
 }
 
 /**
+ * 
  * Helper function, returns which user data to search 
+ * @return array	data names wich are used for the search
  */
 function user_list_get_user_data() {
 	return array('uid', 'name', 'mail', 'status', 'data', 'created');
 }
 
 /**
- *  returns an array|object|boolean of role table
- *  $op:
- *    'get' => return a $role array for a $role_type or an array of roles from role table
- *    'base' => return whether a role exists in role table
- *    'name' => return just the name of the role specified in $role_type
- *  $role_type:
- *    if role_type is null gets all roles, if role_type is specified grabs information for only that role from role table
+ *  
+ * Returns an array|object|boolean of role table
+ * @param string $op
+ * 				'get' => return a $role array for a $role_type or an array of roles from role table
+ * 				'base' => return whether a role exists in role table
+ * 				'name' => return just the name of the role specified in $role_type
+ * @param string $role_type:
+ *    			if role_type is null gets all roles, if role_type is specified grabs information 
+ *    			for only that role from role table
+ * @return array|object|boolean	of role table
  */
 function _user_list_get_roles($op = 'get', $role_type = NULL) {
   
@@ -135,17 +151,14 @@ function _user_list_get_roles($op = 'get', $role_type = NULL) {
       } 
       return $result['name']; 
   }
- 
 }
 
 /**
- * returns true if the user has the role
  * 
- * @param $uid
- * 		user's id
- * 
- * @param $role
- * 		the role name to check
+ * Checks if the user has the role
+ * @param int $uid		user's id
+ * @param string $role	the role name to check
+ * @return bool			true if the user has the role
  */
 function user_list_has_role($uid, $role) {
 	$roles = user_load($uid)->roles;
@@ -156,19 +169,18 @@ function user_list_has_role($uid, $role) {
 }
 
 /**
- * returns an array containing all user data
+ * 
+ * @return array	array containing all user data
  */
 function user_list_get_all_user_data() {
 	return array('username', 'mail', 'role', 'created', 'status');
 }
 
 /**
- * returns an field_id => label array of fields assosiated with the user
  * 
- * @param $uid
- * 		the user's id
- * @param $fid
- * 		id of the field in wich to search
+ * @param int $uid	the user's id
+ * @param int $fid	id of the field in wich to search
+ * @return array	field_id => label array of fields assosiated with the user
  */
 function user_list_user_fields($uid, $fid) {
 	$fields = array();
@@ -195,7 +207,11 @@ function user_list_user_fields($uid, $fid) {
 }
 
 /**
- * Returns the corresponding role rid of the given user // Vahe 02.05.2011
+ * 
+ * @param array $users	list of the users among whom the role is searched
+ * @param int	$uid	id of the user whose role id is returned
+ * @return int|bool		corresponding role rid of the given user, FALSE if not found 
+ * @author Vahe 02.05.2011
  */
 function user_list_get_user_role_id($users, $uid) {
   $roles = array_map('check_plain', user_roles(TRUE));
@@ -212,134 +228,19 @@ function user_list_get_user_role_id($users, $uid) {
 }
 
 /**
- * Ste: this is not working at all
- * Vahan: should we delete it? 
- * Ste: no we should fix it, later on...
- * Ste: this should be moved inside .module again, once fixed.
  * 
+ * Shows whatever is returned in "Test" tab.
  */
-function user_list_block($op = 'list', $delta = 'all', $edit = array()) {
-  switch ($op) {
-    
-    case 'list':
-      $blocks['all'] = array('info' => t('User List: All users'));
-      $blocks['newest'] = array('info' => t('User List: Newest users'));
-      foreach (variable_get('user_list_content_types', array()) as $type) {
-        //if ($name = node_get_types('name', $type)) {
-        if ($name = _node_types_build()->names) { //Vahan 11.02.2011
-          $blocks[$type] = array('info' => t('User List: Users with @types', array('@type' => $name)));
-        }
-      }
-      foreach (variable_get('user_list_role_types', array()) as $role) {
-        if (_user_list_get_roles('base', $key)) {
-          $blocks[$type] = array('info' => t('User List: Users with %role', array('%role' => _user_list_get_roles('name', $role))));
-        }
-      }
-      return $blocks;
-      
-    case 'configure':
-      if ($delta == 'all') {
-        $default_header = t('All users');
-      }
-      else if ($delta == 'newest') {
-        $default_header = t('Recent users');
-      }
-      else if (in_array($delta, variable_get('user_list_content_types', array()))) {
-        //$default_header = t('Users who have contributed at least one @content', array('@content' => node_get_types('name', $delta)));
-        $default_header = t('Users who have contributed at least one @content', array('@content' => _node_types_build()->names)); //Vahan 11.02.2011
-      }
-      else if (array_key_exist($delta, variable_get('user_list_role_types', array()))) {
-        $default_header = t('Users of the %role role', array('%role' => _user_list_get_roles('name', $delta)));
-      }
-      $form['header'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Header'),
-        '#default_value' => variable_get('user_list_block_header_'. $delta, $default_header),
-        '#description' => t('The block header as it will appear to the user.'),
-      );
-      $form['embedded_menu'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Embed Menu'),
-        '#default_value' => variable_get('user_list_block_embed_'. $delta, FALSE),
-        '#description' => t('If checked, an embedded menu of the various user listing pages will be included in the block.'),
-      );
-      $form['number'] = array(
-        '#type' => 'select',
-        '#title' => t('Number of users to list'),
-        '#default_value' => variable_get('user_list_block_number_'. $delta, variable_get('user_list_default_number', 10)),
-        '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100, 125, 150, 200, 250, 500)),
-        '#description' => t('Choose the number of users to list on this block.'),
-      );
-      $form['include_more'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Include a more link'),
-        '#default_value' => variable_get('user_list_block_more_'. $delta, TRUE),
-        '#description' => t('If checked and the corresponding user list page is available, then this block will include a link to that page at the end, if there are more users than are listed in the block.'),
-      );
-      $form['include_more_msg'] = array(
-        '#type' => 'textfield',
-        '#title' => t('View more link text'),
-        '#default_value' => variable_get('user_list_block_more_msg_'. $delta, t('View More')),
-        '#description' => t('If there are more users than listed in the block, and we make a link available to view them on another page, then this is the text for that link.'),
-      );
-      return $form;
-      
-    case 'save':
-      variable_set('user_list_block_header_'. $delta, $edit['header']);
-      variable_set('user_list_block_embed_'. $delta, $edit['embedded_menu']);
-      variable_set('user_list_block_number_'. $delta, $edit['number']);
-      variable_set('user_list_block_more_'. $delta, $edit['include_more']);
-      variable_set('user_list_block_more_msg_'. $delta, $edit['include_more_msg']);
-      break;
-      
-    case 'view':
-      if (user_access('access user lists')) {
-        $number = variable_get('user_list_block_number_'. $delta, variable_get('user_list_default_number', 10));
-        $include_more = variable_get('user_list_block_more_'. $delta, TRUE);
-        $embed_menu = variable_get('user_list_block_embed_'. $delta, FALSE);
-        if ($delta == 'all') {
-          if ($include_more) {
-            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist');
-          }
-          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('All Users'));
-          $block['content'] = _user_list('all', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE);
-        }
-        else if ($delta == 'newest') {
-          if ($include_more) {
-            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/newest');
-          }
-          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Recent Users'));
-          $block['content'] = _user_list('newest', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE);
-        }
-        else if (in_array($delta, variable_get('user_list_content_types', array()))) {
-          if ($include_more) {
-            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/content/'. $delta);
-          }
-          //$block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users who have contributed at least one @content', array('@content' => node_get_types('name', $delta))));
-          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users who have contributed at least one @content', array('@content' => _node_types_build()->names))); //Vahan 11.02.2011
-          $block['content'] = _user_list('content', $number, FALSE, $include_more, '', NULL, $delta, $embed_menu, TRUE);
-        }
-        else if (array_key_exist($delta, variable_get('user_list_role_types', array()))) {
-          if ($include_more) {
-            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/roles/'. $delta);
-          }
-          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users of the %role role', array('%role' => _user_list_get_roles('name', $delta))));
-          $block['content'] = _user_list('roles', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE, NULL, $delta);
-        }
-      }
-      return $block;
-  }
-}
-
-
 function user_list_test() {
-  
-  return print_r(variable_get('user_list_role_types', array()),true);
+	return print_r(variable_get('user_list_role_types', array()),true);
 }
 
 /**
  * 
  * Returns the intersection of arrays of users comparing them by their ids
+ * @param array $array1	first array to intersect
+ * @param array $array2	second array to intersect
+ * @return array		the intersection of arrays of users
  */
 function user_list_user_array_intersect_by_uid($array1, $array2) {
 	if (count($array1) == 0 || count($array2) == 0) {
@@ -359,6 +260,9 @@ function user_list_user_array_intersect_by_uid($array1, $array2) {
 /**
  * 
  * Returns the difference of arrays of users comparing them by their ids
+ * @param array $array1	from wich elements the is subtracted
+ * @param array $array2	which elements are subtracted
+ * @return array		the difference of arrays of users
  */
 function user_list_user_array_diff_by_uid($array1, $array2) {
 	
@@ -374,9 +278,11 @@ function user_list_user_array_diff_by_uid($array1, $array2) {
 }
 
 /**
- * Returns true if any of the elements of $array contains $string, and false otherwise
  * 
- * $array is an array of string elements
+ * Returns true if any of the elements of $array contains $string, and false otherwise
+ * @param array	$array		array of string elements
+ * @param string $string	string to be searched in the array
+ * @return bool				true if string is found, false - otherwise
  */
 function user_list_contains_array($string, $array) {
 	foreach ($array as $val) {
@@ -386,15 +292,10 @@ function user_list_contains_array($string, $array) {
 }
 
 /**
- * returns true if the given $date is in $interval 
- * otherwise false is returned
  * 
- * @param $timestamp
- * 		timestamp for the date
- * @param $interval
- * 		string in start,end format, where start and end are both in dd-mm-yyyy format
- * 		/ and . are also supported as deliminators
- * 
+ * @param string $timestamp	timestamp for the date
+ * @param string $interval	string in start,end format, where start and end are both in any PHP supported date format
+ * @return bool true if the given $date is in $interval, otherwise false is returned
  */
 function user_list_date_is_in_interval($timestamp, $interval) {
 	//TODO: php does not support dd/mm/yyyy format, but this replacement can break other formats
@@ -417,7 +318,7 @@ function user_list_date_is_in_interval($timestamp, $interval) {
 
 /**
  * 
- * tyred of typing the long line everytime
+ * tired of typing the long line everytime
  */
 function p($obj) {
 	drupal_set_message(print_r($obj, true));
@@ -549,10 +450,9 @@ function taxonomy_get_field_autocomplete($field_name, $tag = '') {
 /**
  * 
  * Compares the given date arrays
- * @param array $date1
- * @param array $date2
- * 
- * @return int : 1 if $date1 > $date2, 0 if $date1 == $date2, -1 otherwise
+ * @param array $date1	first date to be compared
+ * @param array $date2	second date to be compared
+ * @return int			1 if $date1 > $date2, 0 if $date1 == $date2, -1 otherwise
  */
 function user_list_compare_dates($date1, $date2) {
 	if ($date1['year'] > $date2['year']) return 1;
@@ -564,9 +464,9 @@ function user_list_compare_dates($date1, $date2) {
 
 /**
  * 
- * Returns the field name
- * @param string $fname
- * 		the field's name to check
+ * Returns the field_id of the field biven by its name
+ * @param string $fname the field's name to check
+ * @return string		the field's id
  */
 function user_list_get_fid_by_fname($fname) {
 	$all_fields = user_list_get_all_fields();
@@ -580,6 +480,8 @@ function user_list_get_fid_by_fname($fname) {
 /**
  * 
  * Returns the keyword for the given field
+ * @param array $field	field for which a keyword is generated
+ * @return string		keyword for the given field
  */
 function user_list_get_field_keyword($field) {
 	return strtoupper(substr($field['field_name'], strlen('field_')));
@@ -587,9 +489,129 @@ function user_list_get_field_keyword($field) {
 
 /** 
  * 
- * returns true if Clean Url is enables, otherwise false
+ * @return bool	true if Clean Url is enables, otherwise false
  */
 function user_list_is_clean_url() {
 	return strpos(request_uri(), "q=userlist") === FALSE;
 }
 
+
+/**
+ * Ste: this is not working at all
+ * Vahan: should we delete it? 
+ * Ste: no we should fix it, later on...
+ * Ste: this should be moved inside .module again, once fixed.
+ * 
+ */
+function user_list_block($op = 'list', $delta = 'all', $edit = array()) {
+  switch ($op) {
+    
+    case 'list':
+      $blocks['all'] = array('info' => t('User List: All users'));
+      $blocks['newest'] = array('info' => t('User List: Newest users'));
+      foreach (variable_get('user_list_content_types', array()) as $type) {
+        //if ($name = node_get_types('name', $type)) {
+        if ($name = _node_types_build()->names) { //Vahan 11.02.2011
+          $blocks[$type] = array('info' => t('User List: Users with @types', array('@type' => $name)));
+        }
+      }
+      foreach (variable_get('user_list_role_types', array()) as $role) {
+        if (_user_list_get_roles('base', $key)) {
+          $blocks[$type] = array('info' => t('User List: Users with %role', array('%role' => _user_list_get_roles('name', $role))));
+        }
+      }
+      return $blocks;
+      
+    case 'configure':
+      if ($delta == 'all') {
+        $default_header = t('All users');
+      }
+      else if ($delta == 'newest') {
+        $default_header = t('Recent users');
+      }
+      else if (in_array($delta, variable_get('user_list_content_types', array()))) {
+        //$default_header = t('Users who have contributed at least one @content', array('@content' => node_get_types('name', $delta)));
+        $default_header = t('Users who have contributed at least one @content', array('@content' => _node_types_build()->names)); //Vahan 11.02.2011
+      }
+      else if (array_key_exist($delta, variable_get('user_list_role_types', array()))) {
+        $default_header = t('Users of the %role role', array('%role' => _user_list_get_roles('name', $delta)));
+      }
+      $form['header'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Header'),
+        '#default_value' => variable_get('user_list_block_header_'. $delta, $default_header),
+        '#description' => t('The block header as it will appear to the user.'),
+      );
+      $form['embedded_menu'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Embed Menu'),
+        '#default_value' => variable_get('user_list_block_embed_'. $delta, FALSE),
+        '#description' => t('If checked, an embedded menu of the various user listing pages will be included in the block.'),
+      );
+      $form['number'] = array(
+        '#type' => 'select',
+        '#title' => t('Number of users to list'),
+        '#default_value' => variable_get('user_list_block_number_'. $delta, variable_get('user_list_default_number', 10)),
+        '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100, 125, 150, 200, 250, 500)),
+        '#description' => t('Choose the number of users to list on this block.'),
+      );
+      $form['include_more'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Include a more link'),
+        '#default_value' => variable_get('user_list_block_more_'. $delta, TRUE),
+        '#description' => t('If checked and the corresponding user list page is available, then this block will include a link to that page at the end, if there are more users than are listed in the block.'),
+      );
+      $form['include_more_msg'] = array(
+        '#type' => 'textfield',
+        '#title' => t('View more link text'),
+        '#default_value' => variable_get('user_list_block_more_msg_'. $delta, t('View More')),
+        '#description' => t('If there are more users than listed in the block, and we make a link available to view them on another page, then this is the text for that link.'),
+      );
+      return $form;
+      
+    case 'save':
+      variable_set('user_list_block_header_'. $delta, $edit['header']);
+      variable_set('user_list_block_embed_'. $delta, $edit['embedded_menu']);
+      variable_set('user_list_block_number_'. $delta, $edit['number']);
+      variable_set('user_list_block_more_'. $delta, $edit['include_more']);
+      variable_set('user_list_block_more_msg_'. $delta, $edit['include_more_msg']);
+      break;
+      
+    case 'view':
+      if (user_access('access user lists')) {
+        $number = variable_get('user_list_block_number_'. $delta, variable_get('user_list_default_number', 10));
+        $include_more = variable_get('user_list_block_more_'. $delta, TRUE);
+        $embed_menu = variable_get('user_list_block_embed_'. $delta, FALSE);
+        if ($delta == 'all') {
+          if ($include_more) {
+            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist');
+          }
+          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('All Users'));
+          $block['content'] = _user_list('all', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE);
+        }
+        else if ($delta == 'newest') {
+          if ($include_more) {
+            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/newest');
+          }
+          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Recent Users'));
+          $block['content'] = _user_list('newest', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE);
+        }
+        else if (in_array($delta, variable_get('user_list_content_types', array()))) {
+          if ($include_more) {
+            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/content/'. $delta);
+          }
+          //$block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users who have contributed at least one @content', array('@content' => node_get_types('name', $delta))));
+          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users who have contributed at least one @content', array('@content' => _node_types_build()->names))); //Vahan 11.02.2011
+          $block['content'] = _user_list('content', $number, FALSE, $include_more, '', NULL, $delta, $embed_menu, TRUE);
+        }
+        else if (array_key_exist($delta, variable_get('user_list_role_types', array()))) {
+          if ($include_more) {
+            $include_more = l(variable_get('user_list_block_more_msg_'. $delta, t('View More')), 'userlist/roles/'. $delta);
+          }
+          $block['subject'] = variable_get('user_list_block_header_'. $delta, t('Users of the %role role', array('%role' => _user_list_get_roles('name', $delta))));
+          $block['content'] = _user_list('roles', $number, FALSE, $include_more, '', NULL, NULL, $embed_menu, TRUE, NULL, $delta);
+        }
+      }
+      return $block;
+  }
+}

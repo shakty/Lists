@@ -1,19 +1,26 @@
 <?php
 
 /**
+ * 
  * @file
  * An include file for user_list module
  * Containing functions for creating, validating and submitting forms of users lists.
  */
 
 /**
- * Creates the form including users list, a checkbox for each user and a button to pass to the second page for entering the message
- * After submition, a new page for entering the message opens
- * Vahan, 25.03.2011
+ * 
+ * Creates the form including users list, a checkbox for each user 
+ * and a button to pass to the second page for entering the message.
+ * After submition, a new page for entering the message opens.
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ * @param array $users		list of users to be shown in the form
+ * @return array			the created form
+ * @author Vahan, 25.03.2011
  */
 function user_list_form($form, &$form_state, $users) {
-	
 	global $user;
+
 	if (isset($form_state['page_num']) && $form_state['page_num'] == 2) {
 	    return user_list_form_message($form, $form_state, $users);
 	}
@@ -348,7 +355,10 @@ function user_list_form($form, &$form_state, $users) {
 
 /**
  * 
- * Ajax callback for search saving
+ * Ajax callback for search saving 
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ * @return array			modified form 
  */
 function user_list_search_save_callback($form, $form_state) {
 	global $user;
@@ -370,9 +380,11 @@ function user_list_search_save_callback($form, $form_state) {
 }
 
 /**
+ * 
  * Ajax callback for the search.
- *
- * @return renderable array
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ * @return				renderable array
  */
 function user_list_search_callback($form, $form_state) {
 	$_GET["q"] = "userlist";
@@ -417,7 +429,11 @@ function user_list_filter_users_by_keywords($users, $keywords) {
 */
 
 /**
- * Returns an array of users for the form
+ * 
+ * Returns an array of users ready to be shown in the form
+ * @param $users	array of user object
+ * @return			form renderable array of users in #tableselect element
+ * @author Vahan
  */
 function user_list_get_user_list($users) {
 		
@@ -483,14 +499,23 @@ function user_list_get_user_list($users) {
 }
 
 /**
+ * 
  * Ajax callback for checking users
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ * @return array			'users_selected' element the form
  */
 function user_list_checked_callback($form, $form_state) {
 	return $form['users_selected'];
 }
 
 /**
+ * 
  * The second page to enter the message and send
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ * @param array $users		TODO:UNUSED! 
+ * @return array			modified form	
  */
 function user_list_form_message($form, &$form_state, $users)
 {
@@ -524,7 +549,10 @@ function user_list_form_message($form, &$form_state, $users)
 }
 
 /**
+ * 
  * Submit handler for user_list_form message button.
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
  */
 function user_list_form_submit($form, &$form_state) {  
   $form_state['page_values'][1] = $form_state['values'];
@@ -542,7 +570,10 @@ function user_list_form_submit($form, &$form_state) {
 
 
 /**
+ * 
  * Validate handler for the message button on first page.
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
  */
 function user_list_form_validate($form, &$form_state)
 {
@@ -556,9 +587,11 @@ function user_list_form_validate($form, &$form_state)
 }
 
 /**
+ * 
  * The page 2 submit handler.
- *
  * This is the final submit handler. Send the entered message to the selected users
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
  */
 function user_list_form_message_submit($form, &$form_state) {
 	$page_one_values = $form_state['page_values'][1];
@@ -578,9 +611,9 @@ function user_list_form_message_submit($form, &$form_state) {
 
 /**
  * 
- * Sends the $message to the $users 
- * @param array $users		list of users to receive the message
- * @param string $message	the message to be sent
+ * Sends the $message to the $users.
+ * @param array $users		list of users to receive the message.
+ * @param string $message	the message to be sent.
  */
 function user_list_send_message($users, $subject, $message) {
 	$successes = array();
@@ -624,6 +657,9 @@ function user_list_send_message($users, $subject, $message) {
     'body' => array(),
   );
 */
+/**
+ * TODO: UNUSED!
+ */
 function user_list_mail ($key, &$message, $params) {
   
   $data['user'] = $params['user'];
@@ -642,6 +678,12 @@ function user_list_mail ($key, &$message, $params) {
   
 }
 
+/**
+ * 
+ * Validates the entered message and if it's empty throws an error.
+ * @param array $form		the form for wich this function is used.
+ * @param array $form_state refernce on the array representing the state of the form
+ */
 function user_list_form_message_validate($form, &$form_state) {
 	if(!isset($form_state['values']['message'])) {
 		form_set_error('message', 'Type some text');
