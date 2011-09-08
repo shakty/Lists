@@ -11,6 +11,7 @@ function theme_user_list_menu($items) {
   return "<div class=\"menu user_list_menu\">\n<ul>\n". $output .'</ul></div>';
 }
 
+//TODO: WTF is this function in 2 files??
 //function theme_user_list_list($op = '', $header = '', $users = array(), $empty_msg = 'There are currently no users in this category to list.', $paginated = FALSE, $number = 10, $element = 0, $include_more = NULL, $embedded_menu = '') {
 function theme_user_list_list($vars = array()) { 
   //Vahan 11.03.2011

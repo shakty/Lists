@@ -232,7 +232,9 @@ function user_list_get_user_role_id($users, $uid) {
  * Shows whatever is returned in "Test" tab.
  */
 function user_list_test() {
-	return print_r(variable_get('user_list_role_types', array()),true);
+	return "<div id='map-div'></div>";
+	
+	//return print_r(variable_get('user_list_role_types', array()),true);
 }
 
 /**
