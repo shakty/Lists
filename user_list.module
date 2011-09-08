@@ -454,7 +454,7 @@ function theme_user_list_list ($vars = array()) {
   //Vahan 11.03.2011, 06.04.2011
   //Vahan, 08.09.2011
   //drupal_add_js('http://livingscience.ethz.ch/ls-api.js'); TODO: remove the comment whenever the API is ready
-  drupal_add_js(drupal_get_path('module', 'user_list').'/includes/livingscience.js');
+  drupal_add_js(drupal_get_path('module', 'user_list').'/includes/ls.js');
   
   $op = $vars[0] ? $vars[0] : '';
   $header = $vars[1] ? $vars[1] : '';
