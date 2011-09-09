@@ -17,11 +17,11 @@
 
 
 /**
- * Returns the filtered users array according to the given keyword.
  * 
- * @param $users	initial list among wich the filtered list is created and returned.
- * @param $haystack	searched string to use for the filter. OR and AND are used as logical operators.
- * @return		 	filtered list from the given list and based on the haystack.
+ * Returns the filtered users array according to the given keyword.
+ * @param array $users		initial list among wich the filtered list is created and returned.
+ * @param string $haystack	searched string to use for the filter. OR and AND are used as logical operators.
+ * @return				 	filtered list from the given list and based on the haystack.
  */
 function user_list_filter_users($users, $haystack) {
 	if (empty($haystack) || trim($haystack) == "") return $users;
@@ -35,20 +35,20 @@ function user_list_filter_users($users, $haystack) {
 }
 
 /**
+ * 
  * Prepares the string for the search, in particular:
  * 1. Takes care about the quotes - ''
  * 2. Sets correct case for and/or/not, that is lower case inside the keyword=[...] and upper case outside.
- *  
- * @param $string	search string of the following form: key1=[val1 AND/OR val2...] AND/OR key2=[...]...
- * 					where all AND/OR can be in any letters, e.g. aNd, And, OR,... 
- * @return			new string of the form: key1=[val1 and/or val2...] AND/OR key2=[...]...
- * 					where all outer AND/OR are in capital letters and inners are in lower. 
+ * 3. Adds % before and after the logical opeartors (e.g. %and%)
+ * @param string $string	search string of the following form: key1=[val1 AND/OR val2...] AND/OR key2=[...]...
+ * 							where all AND/OR can be in any letters, e.g. aNd, And, OR,... 
+ * @return					new string of the form: key1=[val1 and/or val2...] AND/OR key2=[...]...
+ * 							where all outer AND/OR are in capital letters and inners are in lower. 
  */
 function user_list_prerender($string) {	
-	//TODO: probably can be rewritten in 2 lines using regex
-	
-	$new_string = "";
-	$words = explode("\"", $string);
+	$new_string = " ";
+	$words = explode("\"", " ".$string);
+	//
 	foreach ($words as $i=>$w) {
 		if ($i%2 === 1) {
 			$new_string .= $w;
@@ -56,69 +56,51 @@ function user_list_prerender($string) {
 		}
 		$new_w = str_ireplace(array(" & ", " && ", " and "), " %and% ", $w);
 		$new_w = str_ireplace(array(" | ", " || ", " or "), " %or% ", $new_w);
-		$new_w = str_ireplace(array(" ! ", " not "), " %not% ", $new_w);
+		$new_w = str_ireplace(array(" !(", " not("), " %not%(", $new_w);
 		$new_string .= $new_w;
 	}
-	$string = $new_string;
-	
-	$string = str_ireplace(array(" <&> ", " <&&> "), " %and% ", $string);
-	$string = str_ireplace(array(" <|> ", " <||> "), " %or% ", $string);
-	$string = str_ireplace(array(" <!> "), " %not% ", $string);
-	
-	$ret_str = $string;
-	
-	//replace the inner or/and/not by lowe letters
-	$exp1 = explode("=[", $string);
-	$exp1_replaced = array($exp1[0]);
-	$skip = true;
-	
-	foreach ($exp1 as $str) {
-		if ($skip) {
-			$skip = false;
-			continue;
-		}
-		$exp2 = explode("]", $str);
-		$exp2[0] = str_ireplace(" <and> ", " %and% ", $exp2[0]);
-		$exp2[0] = str_ireplace(" <or> ", " %or% ", $exp2[0]);
-		$exp2[0] = str_ireplace(" <not> ", " %not% ", $exp2[0]);
-		$exp1_replaced[] = implode("]", $exp2);
-	}
-	$ret_str = implode("=[", $exp1_replaced);
 	
 	//replace the outer or/and/not by upper letters
-	$exp1 = explode("]", $ret_str);
+	$exp1 = explode("]", $new_string);
 	$exp1_replaced = array();
 	foreach ($exp1 as $str) {
 		$exp2 = explode("=[", $str);
 		$exp2[0] = str_ireplace(" %and% ", " %AND% ", $exp2[0]);
 		$exp2[0] = str_ireplace(" %or% ", " %OR% ", $exp2[0]);
-		$exp2[0] = str_ireplace(" %not% ", " %NOT% ", $exp2[0]);
+		$exp2[0] = str_ireplace(" %not%(", " %NOT%(", $exp2[0]);
 		$exp1_replaced[] = implode("=[", $exp2);
 	}
-	$ret_str = implode("]", $exp1_replaced);
+	$new_string = implode("]", $exp1_replaced);
 	
-	return $ret_str;
+	return $new_string;
 }
 
 
 /**
+ * 
  * Renders the given string based using the inner_search_function, 
  * which is either user_list_filter_users_by_keyword or user_list_filter_users_by_value. 
  * This function is used to avoid the copy-pasted code for the searches inside and outside the keyword=[...].
- *  
- * @param	$users					initial list among wich the filtered list is created and returned.
- * @param	$keyword				string to search for in the given list as a keyword.
- * @param	$inner_search_function	the function that actually implements the search. Possible values are 
- * 									user_list_filter_users_by_keyword and user_list_filter_users_by_value.
- * @param	$param					is used as a key in key=value syntax cases, 
- * 									otherwise it is not used and should be set NULL
- * @return							filtered list from the given list and based on the haystack.
+ * @param array $users						initial list among wich the filtered list is created and returned.
+ * @param string $keyword					string to search for in the given list as a keyword.
+ * @param function $inner_search_function	the function that actually implements the search. Possible values are 
+ * 											user_list_filter_users_by_keyword and user_list_filter_users_by_value.
+ * @param string $param						is used as a key in key=value syntax cases, 
+ * 											otherwise it is not used and should be set NULL
+ * @return									filtered list from the given list and based on the haystack.
  */
 function user_list_handle_search_string($users, $keyword, $inner_search_function, $param) {
 	$users_not = array(); //results to be excluded
 	$exploded_by_nots = explode(user_list_get_search_deliminator($inner_search_function, "%NOT%("), $keyword);
+	p("exploded_by_nots = "); p($exploded_by_nots);
 	if (count($exploded_by_nots) > 1) {
+		$skip = true; //Used to skip the first element of the array
 		foreach ($exploded_by_nots as $not) {
+			if($skip) { //check if it's the first element
+				$skip = false;
+				continue; //skip the first element
+			}
+			p("not = "); p($not);
 			$not_keyword = substr($not, strlen("%NOT%("), strpos($not, ")")-strlen("%NOT%("));
 			$users_not = array_merge($users_not, $inner_search_function($users, $not_keyword, null));
 		}
@@ -149,11 +131,11 @@ function user_list_handle_search_string($users, $keyword, $inner_search_function
 
 
 /**
+ * 
  * Filters and returns the users array according to only the given keyword. 
- *  
- * @param $users	initial list among wich the filtered list is created and returned.
- * @param $keyword	string to search for in the given list as a keyword.
- * @return			filtered list from the given list and based on the haystack.
+ * @param array $users		initial list among wich the filtered list is created and returned.
+ * @param string $keyword	string to search for in the given list as a keyword.
+ * @return					filtered list from the given list and based on the haystack.
  */
 function user_list_filter_users_by_keyword($users, $keyword) {	
 	$users_filtered = array();
@@ -173,15 +155,15 @@ function user_list_filter_users_by_keyword($users, $keyword) {
 }
 
 /**
+ * 
  * Filters and returns the users array according to only the given value and the key.
  * Note that key can be only one of the fixed values "name", "role", "mail", "date" or "null" and is case insencitive.
- * 
- *  @param $users		initial list among wich the filtered list is created and returned.
- *  @param $value		string to search for in the fixed keywords as a value.
- *  @param $key			string to be used as a keyword in the search.
- *  					if is set to null (or not passed ot the function), then $specified is set to false automatically.
- *  @param $specified	if a keyword is specified or not.
- *  @return				filtered list from the given list and based on the haystack.
+ *  @param array $users		initial list among wich the filtered list is created and returned.
+ *  @param string $value	string to search for in the fixed keywords as a value.
+ *  @param string $key		string to be used as a keyword in the search.
+ *  						if is set to null (or not passed ot the function), then $specified is set to false automatically.
+ *  @param bool $specified	if a keyword is specified or not.
+ *  @return					filtered list from the given list and based on the haystack.
  *  
  */
 function user_list_filter_users_by_value($users, $value, $key=null, $specified=true) {
@@ -209,14 +191,14 @@ function user_list_filter_users_by_value($users, $value, $key=null, $specified=t
 
 
 /**
- * Returns the correct case (lower or upper) of the given deliminator based on the used search function.
  * 
- * @param $inner_search_function	the actual search function used. 2 fucntions are possible:
- * 									user_list_filter_users_by_value and user_list_filter_users_by_keyword
- * @param $deliminator				the given logical operator (and/or/not) to switch to the correct case:
- * 									lower for user_list_filter_users_by_value and 
- * 									upper for user_list_filter_users_by_keyword.
- * @return							deliminator in the according case.
+ * Returns the correct case (lower or upper) of the given deliminator based on the used search function.
+ * @param function $inner_search_function	the actual search function used. 2 fucntions are possible:
+ * 											user_list_filter_users_by_value and user_list_filter_users_by_keyword
+ * @param string $deliminator				the given logical operator (and/or/not) to switch to the correct case:
+ * 											lower for user_list_filter_users_by_value and 
+ * 											upper for user_list_filter_users_by_keyword.
+ * @return									deliminator in the according case.
  */
 function user_list_get_search_deliminator($inner_search_function, $deliminator) {
 	if ($inner_search_function == user_list_filter_users_by_value) {
@@ -230,7 +212,6 @@ function user_list_get_search_deliminator($inner_search_function, $deliminator) 
 
 /**
  * Returns the name of the table where the saved searches are stored.
- * 
  * @return	the name of the table where the saved searches are stored.
  */
 function user_list_get_save_table_name() {
@@ -238,8 +219,8 @@ function user_list_get_save_table_name() {
 }
 
 /**
- * Returns an array of the current user's saved searches.
  * 
+ * Returns an array of the current user's saved searches.
  * @return	all the saved searched of the logged in user.
  */
 function user_list_get_all_searches() {
@@ -258,10 +239,10 @@ function user_list_get_all_searches() {
 }
 
 /**
- * Returns an array with saved search details.
  * 
- * @param $search_name	the name of the saved search.
- * @return				array with the following keys: 'sid', 'uid', 'name', 'search', 'url'.
+ * Returns an array with saved search details.
+ * @param string $search_name	the name of the saved search.
+ * @return						array with the following keys: 'sid', 'uid', 'name', 'search', 'url'.
  */
 function user_list_get_search($search_name) {
 	global $user;

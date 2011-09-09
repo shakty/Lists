@@ -10,7 +10,7 @@
  * 
  * creates an embedded menu with letters, roles, "all" and "newest" items
  * @param array $args	list of arguments to use for the creation of the menu items
- * @return string		themed menu
+ * @return 				themed menu
  */
 function _user_list_embedded_menu($args = array()) {
   
@@ -88,7 +88,7 @@ function _user_list_embedded_menu($args = array()) {
 /**
  * 
  * Helper function, returns which user data to search 
- * @return array	data names wich are used for the search
+ * @return 			data names wich are used for the search
  */
 function user_list_get_user_data() {
 	return array('uid', 'name', 'mail', 'status', 'data', 'created');
@@ -104,7 +104,7 @@ function user_list_get_user_data() {
  * @param string $role_type:
  *    			if role_type is null gets all roles, if role_type is specified grabs information 
  *    			for only that role from role table
- * @return array|object|boolean	of role table
+ * @return 		role table
  */
 function _user_list_get_roles($op = 'get', $role_type = NULL) {
   
@@ -158,7 +158,7 @@ function _user_list_get_roles($op = 'get', $role_type = NULL) {
  * Checks if the user has the role
  * @param int $uid		user's id
  * @param string $role	the role name to check
- * @return bool			true if the user has the role
+ * @return 				true if the user has the role
  */
 function user_list_has_role($uid, $role) {
 	$roles = user_load($uid)->roles;
@@ -170,7 +170,7 @@ function user_list_has_role($uid, $role) {
 
 /**
  * 
- * @return array	array containing all user data
+ * @return	array containing all user data
  */
 function user_list_get_all_user_data() {
 	return array('username', 'mail', 'role', 'created', 'status');
@@ -180,7 +180,7 @@ function user_list_get_all_user_data() {
  * 
  * @param int $uid	the user's id
  * @param int $fid	id of the field in wich to search
- * @return array	field_id => label array of fields assosiated with the user
+ * @return 			field_id => label array of fields assosiated with the user
  */
 function user_list_user_fields($uid, $fid) {
 	$fields = array();
@@ -210,7 +210,7 @@ function user_list_user_fields($uid, $fid) {
  * 
  * @param array $users	list of the users among whom the role is searched
  * @param int	$uid	id of the user whose role id is returned
- * @return int|bool		corresponding role rid of the given user, FALSE if not found 
+ * @return 				corresponding role rid of the given user, FALSE if not found 
  * @author Vahe 02.05.2011
  */
 function user_list_get_user_role_id($users, $uid) {
@@ -242,7 +242,7 @@ function user_list_test() {
  * Returns the intersection of arrays of users comparing them by their ids
  * @param array $array1	first array to intersect
  * @param array $array2	second array to intersect
- * @return array		the intersection of arrays of users
+ * @return 				the intersection of arrays of users
  */
 function user_list_user_array_intersect_by_uid($array1, $array2) {
 	if (count($array1) == 0 || count($array2) == 0) {
@@ -264,7 +264,7 @@ function user_list_user_array_intersect_by_uid($array1, $array2) {
  * Returns the difference of arrays of users comparing them by their ids
  * @param array $array1	from wich elements the is subtracted
  * @param array $array2	which elements are subtracted
- * @return array		the difference of arrays of users
+ * @return 				the difference of arrays of users
  */
 function user_list_user_array_diff_by_uid($array1, $array2) {
 	
@@ -284,7 +284,7 @@ function user_list_user_array_diff_by_uid($array1, $array2) {
  * Returns true if any of the elements of $array contains $string, and false otherwise
  * @param array	$array		array of string elements
  * @param string $string	string to be searched in the array
- * @return bool				true if string is found, false - otherwise
+ * @return 					true if string is found, false - otherwise
  */
 function user_list_contains_array($string, $array) {
 	foreach ($array as $val) {
@@ -297,7 +297,7 @@ function user_list_contains_array($string, $array) {
  * 
  * @param string $timestamp	timestamp for the date
  * @param string $interval	string in start,end format, where start and end are both in any PHP supported date format
- * @return bool true if the given $date is in $interval, otherwise false is returned
+ * @return 		 true if the given $date is in $interval, otherwise false is returned
  */
 function user_list_date_is_in_interval($timestamp, $interval) {
 	//TODO: php does not support dd/mm/yyyy format, but this replacement can break other formats
@@ -383,7 +383,7 @@ function user_list_autocomplete($term = '', $search_type = 'generic') {
  * @param string $table the name of the db table to get the data from
  * @param string $column the name of the table column
  * @param string $term the term to search for
- * @return $results the array containing result strings
+ * @return 		 the array containing result strings
  */
 function user_list_get_autocomplete_data($table, $column, $term) {
     $query = db_select($table, 't')
@@ -404,8 +404,9 @@ function user_list_get_autocomplete_data($table, $column, $term) {
 /**
  * taxonomy_get_field_autocomplete
  * Function to get the taxonomy field names as an array, given the field name
- * @param unknown_type $field_name
- * @param unknown_type $tag
+ * @param string $field_name
+ * @param string $tag
+ * @return
  */
 function taxonomy_get_field_autocomplete($field_name, $tag = '') {
   try {
@@ -454,7 +455,7 @@ function taxonomy_get_field_autocomplete($field_name, $tag = '') {
  * Compares the given date arrays
  * @param array $date1	first date to be compared
  * @param array $date2	second date to be compared
- * @return int			1 if $date1 > $date2, 0 if $date1 == $date2, -1 otherwise
+ * @return 				1 if $date1 > $date2, 0 if $date1 == $date2, -1 otherwise
  */
 function user_list_compare_dates($date1, $date2) {
 	if ($date1['year'] > $date2['year']) return 1;
@@ -468,7 +469,7 @@ function user_list_compare_dates($date1, $date2) {
  * 
  * Returns the field_id of the field biven by its name
  * @param string $fname the field's name to check
- * @return string		the field's id
+ * @return 				the field's id
  */
 function user_list_get_fid_by_fname($fname) {
 	$all_fields = user_list_get_all_fields();
@@ -483,7 +484,7 @@ function user_list_get_fid_by_fname($fname) {
  * 
  * Returns the keyword for the given field
  * @param array $field	field for which a keyword is generated
- * @return string		keyword for the given field
+ * @return 				keyword for the given field
  */
 function user_list_get_field_keyword($field) {
 	return strtoupper(substr($field['field_name'], strlen('field_')));
@@ -491,7 +492,7 @@ function user_list_get_field_keyword($field) {
 
 /** 
  * 
- * @return bool	true if Clean Url is enables, otherwise false
+ * @return	true if Clean Url is enables, otherwise false
  */
 function user_list_is_clean_url() {
 	return strpos(request_uri(), "q=userlist") === FALSE;

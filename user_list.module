@@ -15,6 +15,8 @@ require_once 'includes/settings.inc';
 require_once 'includes/utils.inc';
 
 /**
+ * TODO: feature: change the current search, get the results directly from the DB (in process, Vahan)
+ * TODO: bug:NOT does not work!
  * TODO: bug: very quickly check/uncheck fields to show. Then user lsit columns are brocken
  * TODO: bug: set currect email text and subject
  * TODO: feature: add the list of users to whom the message is being sent to the message sending page; and remove the upper letters

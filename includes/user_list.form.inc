@@ -15,7 +15,7 @@
  * @param array $form		the form for wich this function is used.
  * @param array $form_state refernce on the array representing the state of the form
  * @param array $users		list of users to be shown in the form
- * @return array			the created form
+ * @return 					the created form
  * @author Vahan, 25.03.2011
  */
 function user_list_form($form, &$form_state, $users) {
@@ -358,7 +358,7 @@ function user_list_form($form, &$form_state, $users) {
  * Ajax callback for search saving 
  * @param array $form		the form for wich this function is used.
  * @param array $form_state refernce on the array representing the state of the form
- * @return array			modified form 
+ * @return 					modified form 
  */
 function user_list_search_save_callback($form, $form_state) {
 	global $user;
@@ -384,7 +384,7 @@ function user_list_search_save_callback($form, $form_state) {
  * Ajax callback for the search.
  * @param array $form		the form for wich this function is used.
  * @param array $form_state refernce on the array representing the state of the form
- * @return				renderable array
+ * @return					renderable array
  */
 function user_list_search_callback($form, $form_state) {
 	$_GET["q"] = "userlist";
@@ -503,7 +503,7 @@ function user_list_get_user_list($users) {
  * Ajax callback for checking users
  * @param array $form		the form for wich this function is used.
  * @param array $form_state refernce on the array representing the state of the form
- * @return array			'users_selected' element the form
+ * @return 					'users_selected' element of the form
  */
 function user_list_checked_callback($form, $form_state) {
 	return $form['users_selected'];
