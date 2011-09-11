@@ -331,7 +331,8 @@ function user_list_form($form, &$form_state, $users) {
 	// We can change how we build the form based on $form_state.
 	if (!empty($form_state['values']['text'])) {
 		$text = trim($form_state['values']['text']);
-		$found_users =  user_list_filter_users($users, $text); //search results from command search
+		$found_users = user_list_search($text); //search results
+		//$found_users =  user_list_filter_users($users, $text); //search results from command search
 // Only single-field search
 //		$found_users_2 = user_list_filter_users_by_keywords($users, array('username'=>user_list_search_remove_key($text),'role'=>$form_state['values']['role'])); //search results from gui search
 //		$found_users = user_list_get_user_list(user_list_user_array_intersect_by_uid($found_users_1, $found_users_2));
@@ -466,8 +467,8 @@ function user_list_get_user_list($users) {
 	foreach ($users as $user) {
 		$u = user_load($user->uid);
 		
-		$options[$user->uid] = array(
-	    	'username' => $user->name,
+		$options[$user->uid] = array( //TODO: use user_list_get_all_user_data() instead hard coding!
+	    	'name' => $user->name,
 	    	'mail' =>  $user->mail,
 	    	'role' => implode("; ", user_load($user->uid)->roles),
 			'created' => format_date($user->created, 'custom', 'd-m-Y'),

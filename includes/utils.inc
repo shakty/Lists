@@ -173,7 +173,7 @@ function user_list_has_role($uid, $role) {
  * @return	array containing all user data
  */
 function user_list_get_all_user_data() {
-	return array('username', 'mail', 'role', 'created', 'status');
+	return array('name', 'mail', 'role', 'created', 'status');
 }
 
 /**

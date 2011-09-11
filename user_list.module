@@ -20,6 +20,7 @@ require_once 'includes/utils.inc';
  * TODO: bug: very quickly check/uncheck fields to show. Then user lsit columns are brocken
  * TODO: bug: set currect email text and subject
  * TODO: feature: add the list of users to whom the message is being sent to the message sending page; and remove the upper letters
+ * TODO: feature: make the search box the default active field
  * FIXED: bug: fix positions when ajax is in process
  * TODO: bug: after clicking on letters autocomplete does not work
  * DONE: bug: empty search returns nothing, should return a complete list
