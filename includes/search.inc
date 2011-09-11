@@ -28,7 +28,7 @@ function user_list_filter_users($users, $haystack) {
 	/*if (stripos($haystack, "=[") === FALSE) {
 		return user_list_filter_users_by_value($users, $haystack);
 	}*/
-	user_list_search($haystack);
+	user_list_get_search_query($haystack);
 	
 	$haystack = user_list_prerender($haystack); //important to make a correct search string
 
@@ -309,86 +309,91 @@ function user_list_search($search) {
 function user_list_get_search_query($search) {
 	$str = str_replace("\"", "\" ", $search); //temporary copy of the search string. There must be a space after each double-quote. The processed part is removed after each iteration.
 	$query = "";
-	if (strpos($search, "=") === FALSE) {
-		//p("query -> ".user_list_search_in_all_query($search));
-		return user_list_search_in_all_query($search);
-	}
 	$field_names = array();
-	//p($search);
-	while (strlen($str) > 0) {
-		$column = trim(strstr($str, "[", true)); //current column to search
-		$inner_str = substr($str, strpos($str, "[") + 1, strpos($str, "]") - strpos($str, "[") - 1); //the string inside [..]
-		//p("column -> ".$column);
-		//p("inner_str -> ".$inner_str);
-		$inside = false; //if the current position is inside double quotes
-		$word = ""; //current word, i.e. the string after the last space
-		$value = ""; //current search value for the current column
-		$operator = "";
-		$inner_str = trim($inner_str); //remove the spaces from the begging and end
-		$operators = user_list_get_operators();
-		if (strpos($column, ")") === 0) { //after not(..) the closing braket is left with the next column, so it must be removed
-			$column = trim(substr($column, 1));
+	if (strpos($search, "=") === FALSE) {
+		p("search in all query");
+		$fields = user_list_get_all_fields();
+		foreach ($fields as $field) {
+			$field_names[] = substr($field['field_name'], strlen("field_"));
 		}
-		do { //handle the operators at the begining of the column. Cycle need for cases like AND NOT(..)
-			$starting_operator = "";
-			foreach ($operators as $op) { //check if $column starts with an operator
-				if (stripos($column, $op) === 0) $starting_operator = $op;
+		$query = user_list_search_in_all_query($search);
+	} else {
+		//p($search);
+		while (strlen($str) > 0) {
+			$column = trim(strstr($str, "[", true)); //current column to search
+			$inner_str = substr($str, strpos($str, "[") + 1, strpos($str, "]") - strpos($str, "[") - 1); //the string inside [..]
+			//p("column -> ".$column);
+			//p("inner_str -> ".$inner_str);
+			$inside = false; //if the current position is inside double quotes
+			$word = ""; //current word, i.e. the string after the last space
+			$value = ""; //current search value for the current column
+			$operator = "";
+			$inner_str = trim($inner_str); //remove the spaces from the begging and end
+			$operators = user_list_get_operators();
+			if (strpos($column, ")") === 0) { //after not(..) the closing braket is left with the next column, so it must be removed
+				$column = trim(substr($column, 1));
 			}
-			if ($starting_operator === "") break; //if $str doesn't start with an operator break
-			//p("starting operator -> ".$starting_operator);
-			$query .= strtoupper($starting_operator).(strtolower($starting_operator) === "not"?"":" "); //for NOT don't put space afterwords
-			$column = trim(substr($column, strpos($column, $starting_operator)+strlen($starting_operator)+(strtolower($starting_operator) === "not"?1:0))); //for NOT there is ( after the operator, so +1 the starting position
-		} while ($starting_operator != "");
-		if (empty($column)) { //with the emtpy inner_str an empty column is generated, and if not this BREAK, we get a forever cycle
-			break;
-		} elseif ($column === "role=") { //for role keyword search from `role` table
-			$column = "role.name=";
-		} elseif ($column === "date") { //special handling for dates
-			 //TODO: dates handling 
-		} elseif (in_array(strstr($column, "=", true), user_list_get_all_user_data())) { //for other keywords use `users`
-			$column = "users.".$column;
-		} else { //for not keywords search in manually added fields
-			array_push($field_names, strstr($column, "=", true));
-			//p("ACHTUNG! ".$column." ".strlen());
-			$column = "taxonomy_term_data.name=";
-		}
-		//p("modified column -> ".$column);
-		$query .= "("; //each column must be inside brakets
-		for ($i = 0; $i < strlen($inner_str); ++$i) {
-			if ($inner_str[$i] == '"') { //double-column indicates the start/end of a part which must be handled as a whole search value
-				$inside = !$inside;
-				continue;
-			} 
-			if ($inside) { //if inside double-brakets, add each symbol to the current word
-				//p("inside double-quotes");
-				$word .= $inner_str[$i];
-				continue;
+			do { //handle the operators at the begining of the column. Cycle need for cases like AND NOT(..)
+				$starting_operator = "";
+				foreach ($operators as $op) { //check if $column starts with an operator
+					if (stripos($column, $op) === 0) $starting_operator = $op;
+				}
+				if ($starting_operator === "") break; //if $str doesn't start with an operator break
+				//p("starting operator -> ".$starting_operator);
+				$query .= strtoupper($starting_operator).(strtolower($starting_operator) === "not"?"":" "); //for NOT don't put space afterwords
+				$column = trim(substr($column, strpos($column, $starting_operator)+strlen($starting_operator)+(strtolower($starting_operator) === "not"?1:0))); //for NOT there is ( after the operator, so +1 the starting position
+			} while ($starting_operator != "");
+			if (empty($column)) { //with the emtpy inner_str an empty column is generated, and if not this BREAK, we get a forever cycle
+				break;
+			} elseif ($column === "role=") { //for role keyword search from `role` table
+				$column = "role.name=";
+			} elseif ($column === "date") { //special handling for dates
+				 //TODO: dates handling 
+			} elseif (in_array(strstr($column, "=", true), user_list_get_all_user_data())) { //for other keywords use `users`
+				$column = "users.".$column;
+			} else { //for not keywords search in manually added fields
+				array_push($field_names, strstr($column, "=", true));
+				//p("ACHTUNG! ".$column." ".strlen());
+				$column = "taxonomy_term_data.name=";
 			}
-			if ($inner_str[$i] === " ") //check the end of word
-			{
-				//p("space found!");
-				if (in_array($word, user_list_get_operators())) { //if the current word is a preserved operator (and|or|not)
-					//p($word." is an operator!");
-					$operator = $word;
-					$query .= $column."'%".trim($value)."%'  ".strtoupper($operator)." "; //add to the query: column=value OPERATOR
-					$value = ""; //start a new value after operators
+			//p("modified column -> ".$column);
+			$query .= "("; //each column must be inside brakets
+			for ($i = 0; $i < strlen($inner_str); ++$i) {
+				if ($inner_str[$i] == '"') { //double-column indicates the start/end of a part which must be handled as a whole search value
+					$inside = !$inside;
+					continue;
+				} 
+				if ($inside) { //if inside double-brakets, add each symbol to the current word
+					//p("inside double-quotes");
+					$word .= $inner_str[$i];
+					continue;
+				}
+				if ($inner_str[$i] === " ") //check the end of word
+				{
+					//p("space found!");
+					if (in_array($word, user_list_get_operators())) { //if the current word is a preserved operator (and|or|not)
+						//p($word." is an operator!");
+						$operator = $word;
+						$query .= $column."'%".trim($value)."%'  ".strtoupper($operator)." "; //add to the query: column=value OPERATOR
+						$value = ""; //start a new value after operators
+					}
+					else {
+						$value .= $word." "; //if the current word is not an operator, add it to the current value
+						$operator = ""; //reset operator after using
+					}
+					$word = ""; //start a new word after spaces
 				}
 				else {
-					$value .= $word." "; //if the current word is not an operator, add it to the current value
-					$operator = ""; //reset operator after using
+					$word .= $inner_str[$i]; //if the symbol is not a space add to the current word
 				}
-				$word = ""; //start a new word after spaces
+				//p("i -> ".$i);
+				//p("word -> ".$word);
+				//p("value -> ".$value);
+				//p("query -> ".$query);
 			}
-			else {
-				$word .= $inner_str[$i]; //if the symbol is not a space add to the current word
-			}
-			//p("i -> ".$i);
-			//p("word -> ".$word);
-			//p("value -> ".$value);
-			//p("query -> ".$query);
+			$query .= $column."'%".trim($word)."%'".") "; //add the last word to the query
+			$str = substr($str, strpos($str, "]")+1); //cut the first 'column=[...]' part
 		}
-		$query .= $column."'%".trim($word)."%'".") "; //add the last word to the query
-		$str = substr($str, strpos($str, "]")+1); //cut the first 'column=[...]' part
 	}
 	$query = str_replace("=", " LIKE ", $query); //use LIKE statement
 	$query = "SELECT users.uid FROM users ".user_list_search_role_joins().user_list_search_field_joins($field_names)." WHERE ".$query; //Add the first part of the query
@@ -409,7 +414,13 @@ function user_list_search_in_all_query($search) {
 	foreach ($data as $column) {
 		if (!$is_first) $query .= " OR ";
 		else $is_first = false;
-		$query .= "users.".$column."='".$search."'";
+		if ($column == "role") $column = "role.name";
+		else $column = "users.".$column;
+		$query .= "(".$column."='%".$search."%')";
+	}
+	$fields = user_list_get_all_fields();
+	for ($i=0; $i<count($fields); ++$i) {
+		$query .= " OR (TTD_".$i.".name='%".$search."%')";
 	}
 	return $query;
 }
@@ -431,9 +442,11 @@ function user_list_search_role_joins() {
  */
 function user_list_search_field_joins($field_names) {
 	$query = "";
+	$i = 0;
 	foreach ($field_names as $field_name) {
 		$field_table = "field_data_field_".$field_name;
-		$query .= "LEFT JOIN ".$field_table." ON ".$field_table.".entity_id=users.uid LEFT JOIN taxonomy_term_data ON ".$field_table.".field_".$field_name."_tid=taxonomy_term_data.tid ";
+		$query .= "LEFT JOIN ".$field_table." ON ".$field_table.".entity_id=users.uid LEFT JOIN taxonomy_term_data TTD_".$i." ON ".$field_table.".field_".$field_name."_tid=TTD_".$i.".tid ";
+		$i++;
 	}	
 	return $query;
 }
