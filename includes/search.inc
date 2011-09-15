@@ -287,11 +287,12 @@ function user_list_get_search($search_name) {
  */
 function user_list_search($search) {
 	$users = array();	
+	//user_list_get_search_query($search);
 	$result = db_query(user_list_get_search_query($search))->fetchAll();
 	
 	foreach ($result as $obj) {
 		$users[] = user_load($obj->uid);
-	}
+	} 
 	
 	//p($users);
 	
@@ -311,7 +312,7 @@ function user_list_get_search_query($search) {
 	$query = "";
 	$field_names = array();
 	if (strpos($search, "=") === FALSE) {
-		p("search in all query");
+		//p("search in all query");
 		$fields = user_list_get_all_fields();
 		foreach ($fields as $field) {
 			$field_names[] = substr($field['field_name'], strlen("field_"));
@@ -320,7 +321,8 @@ function user_list_get_search_query($search) {
 	} else {
 		//p($search);
 		while (strlen($str) > 0) {
-			$column = trim(strstr($str, "[", true)); //current column to search
+			$dates = array(); //for start and end dates, if a date search is done
+			$column = strtolower(trim(strstr($str, "[", true))); //current column to search
 			$inner_str = substr($str, strpos($str, "[") + 1, strpos($str, "]") - strpos($str, "[") - 1); //the string inside [..]
 			//p("column -> ".$column);
 			//p("inner_str -> ".$inner_str);
@@ -347,8 +349,14 @@ function user_list_get_search_query($search) {
 				break;
 			} elseif ($column === "role=") { //for role keyword search from `role` table
 				$column = "role.name=";
-			} elseif ($column === "date") { //special handling for dates
-				 //TODO: dates handling 
+			} elseif ($column === "date=") { //special handling for dates
+				//TODO: dates handling
+				if (strpos($inner_str, ",") !== FALSE) $dates = explode(",", $inner_str); //syntax:  date=[start_date, end_date]
+				else { //if there is just one date, use it as a start date and for end date use the current date
+					$dates[0] = $inner_str; //start date
+					$dates[1] = ""; //end date
+				}
+				$column = "users.created";
 			} elseif (in_array(strstr($column, "=", true), user_list_get_all_user_data())) { //for other keywords use `users`
 				$column = "users.".$column;
 			} else { //for not keywords search in manually added fields
@@ -358,40 +366,44 @@ function user_list_get_search_query($search) {
 			}
 			//p("modified column -> ".$column);
 			$query .= "("; //each column must be inside brakets
-			for ($i = 0; $i < strlen($inner_str); ++$i) {
-				if ($inner_str[$i] == '"') { //double-column indicates the start/end of a part which must be handled as a whole search value
-					$inside = !$inside;
-					continue;
-				} 
-				if ($inside) { //if inside double-brakets, add each symbol to the current word
-					//p("inside double-quotes");
-					$word .= $inner_str[$i];
-					continue;
-				}
-				if ($inner_str[$i] === " ") //check the end of word
-				{
-					//p("space found!");
-					if (in_array($word, user_list_get_operators())) { //if the current word is a preserved operator (and|or|not)
-						//p($word." is an operator!");
-						$operator = $word;
-						$query .= $column."'%".trim($value)."%'  ".strtoupper($operator)." "; //add to the query: column=value OPERATOR
-						$value = ""; //start a new value after operators
+			if (count($dates) == 0) { //for dates a different handling is required
+				for ($i = 0; $i < strlen($inner_str); ++$i) {
+					if ($inner_str[$i] == '"') { //double-column indicates the start/end of a part which must be handled as a whole search value
+						$inside = !$inside;
+						continue;
+					} 
+					if ($inside) { //if inside double-brakets, add each symbol to the current word
+						//p("inside double-quotes");
+						$word .= $inner_str[$i];
+						continue;
+					}
+					if ($inner_str[$i] === " ") //check the end of word
+					{
+						//p("space found!");
+						if (in_array($word, user_list_get_operators())) { //if the current word is a preserved operator (and|or|not)
+							//p($word." is an operator!");
+							$operator = $word;
+							$query .= $column."'%".trim($value)."%'  ".strtoupper($operator)." "; //add to the query: column=value OPERATOR
+							$value = ""; //start a new value after operators
+						}
+						else {
+							$value .= $word." "; //if the current word is not an operator, add it to the current value
+							$operator = ""; //reset operator after using
+						}
+						$word = ""; //start a new word after spaces
 					}
 					else {
-						$value .= $word." "; //if the current word is not an operator, add it to the current value
-						$operator = ""; //reset operator after using
+						$word .= $inner_str[$i]; //if the symbol is not a space add to the current word
 					}
-					$word = ""; //start a new word after spaces
+					//p("i -> ".$i);
+					//p("word -> ".$word);
+					//p("value -> ".$value);
+					//p("query -> ".$query);
 				}
-				else {
-					$word .= $inner_str[$i]; //if the symbol is not a space add to the current word
-				}
-				//p("i -> ".$i);
-				//p("word -> ".$word);
-				//p("value -> ".$value);
-				//p("query -> ".$query);
+				$query .= $column."'%".trim($word)."%'".") "; //add the last word to the query
+			} else { //handle dates
+				$query .= user_list_search_date_condition($dates, $column).") ";
 			}
-			$query .= $column."'%".trim($word)."%'".") "; //add the last word to the query
 			$str = substr($str, strpos($str, "]")+1); //cut the first 'column=[...]' part
 		}
 	}
@@ -422,6 +434,28 @@ function user_list_search_in_all_query($search) {
 	for ($i=0; $i<count($fields); ++$i) {
 		$query .= " OR (TTD_".$i.".name='%".$search."%')";
 	}
+	return $query;
+}
+
+/**
+ * 
+ * Creates a WHERE claus of searched dates
+ * @param array $dates		array of 2 elements: start_date and end_date
+ * @param string $column	column in wich to search
+ * @return					a string of SQL WHERE condition interval for the searched dates
+ */
+function user_list_search_date_condition($dates, $column) {
+	$query = "";
+	if (count($dates) == 0) return "";
+	if (!empty($dates[0])) {
+		$start_date = new DateTime($dates[0]);
+		$query = $column." > '".strtotime($start_date->format("d-m-Y"))."' ";
+	}
+	if (!empty($dates[1])) {
+		$end_date = date_add(new DateTime($dates[1]), new DateInterval("P1D"))->format("d-m-Y"); //Add one day to include the given date in the search
+		$query .= (empty($query)?"":"AND ").$column." < '".strtotime($end_date)."'";
+	}
+	//p("date query -> ".$query);
 	return $query;
 }
 
