@@ -7,12 +7,12 @@
  * User lists may be displayed alphabetically, beginning with A-Z, by newest, by role, or as a list of users who have posted content of a certain type.
  */
 
-require_once 'includes/search.inc';
-require_once 'includes/fields.inc';
+require_once 'includes/user_list.search.inc';
+require_once 'includes/user_list.fields.inc';
 require_once 'includes/user_list.form.inc';
-require_once 'includes/export.inc';
-require_once 'includes/settings.inc';
-require_once 'includes/utils.inc';
+require_once 'includes/user_list.export.inc';
+require_once 'includes/user_list.settings.inc';
+require_once 'includes/user_list.utils.inc';
 
 /**
  * TODO: feature: change the current search, get the results directly from the DB (in process, Vahan)
