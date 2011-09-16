@@ -32,7 +32,7 @@ require_once 'includes/user_list.utils.inc';
  * TODO: the help text on top doesn't make too much sence. Especially the part with blocks and permissions.
  * 
  * FIXED: bug 1: after ajax search, the bottom links to access paginated search are not updated. If you try to click on them you get an error msg.
- * FIXED: bug 2: authenticated role does not show up?  See get_user_role in includes\utils.inc
+ * FIXED: bug 2: authenticated role does not show up?  See get_user_role in includes\user_list.utils.inc
  * FIXED: bug 3: no-more 'select all' checkbox after an ajax request?
  * 
  * DONE: feature 1: We need to create an easier and more powerful way to handle to ajax search. We need to be able to use boolean logic: OR, AND, NOT  
@@ -96,7 +96,7 @@ function user_list_menu() {
     );
 	
     // Creates Menu
-    if (variable_get('user_list_provide_menu', FALSE)) {
+    /*if (variable_get('user_list_provide_menu', FALSE)) {
       
       $items['userlist/all'] = array(
         'title' => 'all',
@@ -183,7 +183,7 @@ function user_list_menu() {
             'type' => MENU_LOCAL_TASK,
             'weight' => 3,
           );    
-    }
+    }*/
   }
   
   return $items;
@@ -457,7 +457,7 @@ function theme_user_list_list ($vars = array()) {
   //Vahan 11.03.2011, 06.04.2011
   //Vahan, 08.09.2011
   //drupal_add_js('http://livingscience.ethz.ch/ls-api.js'); TODO: remove the comment whenever the API is ready
-  drupal_add_js(drupal_get_path('module', 'user_list').'/includes/ls.js');
+  drupal_add_js(drupal_get_path('module', 'user_list').'/includes/user_list.ls.js');
   
   $op = $vars[0] ? $vars[0] : '';
   $header = $vars[1] ? $vars[1] : '';
