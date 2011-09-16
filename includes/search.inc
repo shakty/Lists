@@ -292,7 +292,7 @@ function user_list_search($search) {
 	
 	foreach ($result as $obj) {
 		$users[] = user_load($obj->uid);
-	} 
+	}
 	
 	//p($users);
 	
@@ -311,6 +311,7 @@ function user_list_get_search_query($search) {
 	$str = str_replace("\"", "\" ", $search); //temporary copy of the search string. There must be a space after each double-quote. The processed part is removed after each iteration.
 	$query = "";
 	$field_names = array();
+	$field_number = 0;
 	if (strpos($search, "=") === FALSE) {
 		//p("search in all query");
 		$fields = user_list_get_all_fields();
@@ -362,7 +363,8 @@ function user_list_get_search_query($search) {
 			} else { //for not keywords search in manually added fields
 				array_push($field_names, strstr($column, "=", true));
 				//p("ACHTUNG! ".$column." ".strlen());
-				$column = "taxonomy_term_data.name=";
+				$column = "TTD_$field_number.name=";
+				$field_number++;
 			}
 			//p("modified column -> ".$column);
 			$query .= "("; //each column must be inside brakets
@@ -409,7 +411,7 @@ function user_list_get_search_query($search) {
 	}
 	$query = str_replace("=", " LIKE ", $query); //use LIKE statement
 	$query = "SELECT users.uid FROM users ".user_list_search_role_joins().user_list_search_field_joins($field_names)." WHERE ".$query; //Add the first part of the query
-	//p("query -> ".$query);
+	p("query -> ".$query);
 	return $query;	
 }
 
@@ -481,7 +483,7 @@ function user_list_search_field_joins($field_names) {
 		$field_table = "field_data_field_".$field_name;
 		$query .= "LEFT JOIN ".$field_table." ON ".$field_table.".entity_id=users.uid LEFT JOIN taxonomy_term_data TTD_".$i." ON ".$field_table.".field_".$field_name."_tid=TTD_".$i.".tid ";
 		$i++;
-	}	
+	}
 	return $query;
 }
 
