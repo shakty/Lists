@@ -13,13 +13,15 @@ require_once 'includes/user_list.form.inc';
 require_once 'includes/user_list.export.inc';
 require_once 'includes/user_list.settings.inc';
 require_once 'includes/user_list.utils.inc';
+require_once 'includes/user_list.tabs.inc';
+
 
 /**
  * TODO: feature: change the current search, get the results directly from the DB (in process, Vahan)
- * TODO: bug:NOT does not work!
+ * TODO: bug: inner not does not work!
  * TODO: bug: very quickly check/uncheck fields to show. Then user lsit columns are brocken
  * TODO: bug: set currect email text and subject
- * TODO: feature: add the list of users to whom the message is being sent to the message sending page; and remove the upper letters
+ * TODO: feature: add the list of users to whom the message is being sent to the message sending page;
  * TODO: feature: make the search box the default active field
  * FIXED: bug: fix positions when ajax is in process
  * TODO: bug: after clicking on letters autocomplete does not work
@@ -94,6 +96,17 @@ function user_list_menu() {
       'page callback' => '_user_list_page',
       'type' => MENU_NORMAL_ITEM,
     );
+    
+    //Create tabs
+    foreach (user_list_get_tabs() as $tid => $tab) {
+    	$items['userlist/'.$tab->name] = array(
+    		'title' => $tab->name,
+			'access arguments' => array('access user lists'),
+			'page callback' => '_user_list_page',
+			'type' => MENU_LOCAL_TASK,
+    		'weight' => $tab->weight,
+    	);
+    }
 	
     // Creates Menu
     /*if (variable_get('user_list_provide_menu', FALSE)) {
@@ -231,7 +244,7 @@ function _user_list_init(&$op, &$number, &$paginated , &$include_more_link,
     $number = variable_get('user_list_default_number', 1000);
   }
 
-  if ($embed_menu || ($embed_menu === NULL && variable_get('user_list_embed_menu', TRUE))) {
+  /*if ($embed_menu || ($embed_menu === NULL && variable_get('user_list_embed_menu', TRUE))) {
     if (!$from_block) {
       $args = array(arg(0), arg(1), arg(2));
     }
@@ -246,7 +259,7 @@ function _user_list_init(&$op, &$number, &$paginated , &$include_more_link,
   }
   else if ($op == 'content') {
     $types = variable_get('user_list_content_types', array());
-  }
+  }*/
   
 }
 

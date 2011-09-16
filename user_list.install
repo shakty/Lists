@@ -1,6 +1,9 @@
 <?php
 
 include_once 'includes/user_list.utils.inc';
+include_once 'includes/user_list.search.inc';
+include_once 'includes/user_list.tabs.inc';
+include_once 'includes/user_list.fields.inc';
 
 /**
 * 
@@ -86,6 +89,35 @@ function user_list_schema() {
 		),
 	);
 	
+	//table for tabs
+	$schema[user_list_get_tabs_table_name()] = array(
+		'description' => 'Stores data of the tabs.',
+		'fields' => array(
+			'tid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'description' => 'Tab ID of the tab.',
+			),
+			'name' => array(
+				'type' => 'varchar',
+				'length' => 1024,
+				'default' => '',
+				'description' => 'tab name.',
+			),
+			'content' => array(
+				'type' => 'text',
+				'description' => 'content to be shown in the tab (in HTML).',
+			),
+			'weight' => array(
+				'type' => 'int',
+				'length' => 1024,
+				'default' => 0,
+				'description' => 'tab\'s weight in the menu', 
+			),
+		),
+	);
+	
 	return $schema;
 }
 
@@ -93,7 +125,7 @@ function user_list_schema() {
  * Implementation of hook_uninstall().
  */
 function user_list_uninstall() {
-	drupal_uninstall_schema(user_list_get_save_table_name());
+	drupal_uninstall_schema('user_list');
 }
 
 
