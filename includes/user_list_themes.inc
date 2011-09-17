@@ -61,10 +61,10 @@ function theme_user_list_list($vars = array()) {
  * Creates the form including users list, a checkbox for each user and buttons to contact(email, skype) the selected users
  * Vahan, 25.03.2011
  */
-function user_list_form($form, $form_state, $extra) {
-	
+/*function user_list_form($form, $form_state, $extra) {
+  
   $form = array();
-	
+  
   $form['submit_email'] = array(
     '#type' => 'submit',
     '#value' => t('Send Email'),
@@ -72,6 +72,6 @@ function user_list_form($form, $form_state, $extra) {
   
   return $form;
  
-}
+}*/
 
 ?>

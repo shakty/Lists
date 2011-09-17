@@ -61,20 +61,20 @@ function user_list_menu() {
     'type' => MENU_CALLBACK,
     'access callback' => TRUE,
   );
-	
+  
   $items['admin/userlist'] = array(
-	'title' => 'User list',
-	'description' => 'User list',
-	'page callback' => 'user_list_redirect_to_userlist',
-	'access arguments' => array('access user lists'),
-	'type' => MENU_NORMAL_ITEM,
+  'title' => 'User list',
+  'description' => 'User list',
+  'page callback' => 'user_list_redirect_to_userlist',
+  'access arguments' => array('access user lists'),
+  'type' => MENU_NORMAL_ITEM,
   );
   
   // Exporting url
   $items['userlist/autocomplete'] = array(
         'title' => 'Autocomplete Users',
         'page callback' => 'user_list_autocomplete',
-       	'access arguments' => array('access user lists'),
+         'access arguments' => array('access user lists'),
         'type' => MENU_CALLBACK,
   );
   
@@ -98,16 +98,17 @@ function user_list_menu() {
     );
     
     //Create tabs
-    foreach (user_list_get_tabs() as $tid => $tab) {
-    	$items['userlist/'.$tab->name] = array(
-    		'title' => $tab->name,
-			'access arguments' => array('access user lists'),
-			'page callback' => '_user_list_page',
-			'type' => MENU_LOCAL_TASK,
-    		'weight' => $tab->weight,
-    	);
+    $tabs = module_invoke_all("add_tabs");
+    foreach ($tabs as $tab) {
+      $items['userlist/'.$tab->tid] = array(
+        'title' => $tab->title,
+        'access arguments' => array('access user lists'),
+        'page callback' => 'user_list_show_tab',
+        'type' => MENU_LOCAL_TASK,
+        'weight' => $tab->weight,
+      );
     }
-	
+  
     // Creates Menu
     /*if (variable_get('user_list_provide_menu', FALSE)) {
       
@@ -164,8 +165,8 @@ function user_list_menu() {
       // **Content Types**: creates as many pages as content types
       foreach (variable_get('user_list_content_types', array()) as $type) {
         if ($names = _node_types_build()->names) {
-          	if (!isset($names[$type])) continue;
-        	$items['userlist/content/'. $type] = array(
+            if (!isset($names[$type])) continue;
+          $items['userlist/content/'. $type] = array(
             'title' => $names[$type],
             'access arguments' => array('access user lists'),
             'page callback' => '_user_list_page',
@@ -299,7 +300,7 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   
   $paginated = false; //TODO Vahan, 16.07.2011, if paginated the search does not find unshown users
   if (strpos($op, 'userlist') === FALSE) {  //TODO: this is a strange check!, but makes the search to be saved correctly
-  	$_SESSION['userlist']['op'] = $op; //Vahan, 08.06.2011, save the optional search in $_SESSION to use when saving the search
+    $_SESSION['userlist']['op'] = $op; //Vahan, 08.06.2011, save the optional search in $_SESSION to use when saving the search
   }
   
   static $element = 0;
@@ -317,15 +318,15 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   // Query: Users that begins with letter $op
   if (drupal_strlen($op) == 1 && variable_get('user_list_alpha_listing', TRUE)) {
     
-  	//$result = pager_query("SELECT u.uid, u.name FROM {users} u WHERE u.status <> 0 AND u.access <> 0 AND LOWER(u.name) LIKE '%s%%' ORDER BY u.name ASC", $number, $element_override, NULL, drupal_strtolower($op));
-  	//Vahan, 04.03.2011 TODO: $element_override, $count_query, $content_type are not used! USE THEM!
-  	
-  	$op_lower = drupal_strtolower($op);
-  	$query = $query
-  				      ->where("LOWER(u.name) LIKE '".$op_lower."%'")
-				        ->orderBy('created', 'ASC');
-				        
-			    
+    //$result = pager_query("SELECT u.uid, u.name FROM {users} u WHERE u.status <> 0 AND u.access <> 0 AND LOWER(u.name) LIKE '%s%%' ORDER BY u.name ASC", $number, $element_override, NULL, drupal_strtolower($op));
+    //Vahan, 04.03.2011 TODO: $element_override, $count_query, $content_type are not used! USE THEM!
+    
+    $op_lower = drupal_strtolower($op);
+    $query = $query
+                ->where("LOWER(u.name) LIKE '".$op_lower."%'")
+                ->orderBy('created', 'ASC');
+                
+          
     if ($include_more_link) {
       $count = db_query("SELECT COUNT(u.uid) FROM {users} u WHERE LOWER(u.name) LIKE '%:s%%'", array('s'=> $op_lower))->fetchField();
     }
@@ -338,10 +339,10 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   else if ($op == 'content' && ($type_name = _node_types_build()->names) && $types[$content_type]) { //Vahan 11.02.2011
     $header = t('Users who have contributed at least one %content', array('%content' => $content_type));
    
-  	$query->innerJoin('node', 'n', 'n.uid = u.uid AND n.type = :ctype', array('ctype' => $content_type));
+    $query->innerJoin('node', 'n', 'n.uid = u.uid AND n.type = :ctype', array('ctype' => $content_type));
           
-  	$query = $query
- 	    ->orderBy('name', 'ASC');
+    $query = $query
+       ->orderBy('name', 'ASC');
     
     if ($include_more_link) {
       $count_query = "SELECT COUNT(DISTINCT(u.uid)) FROM {users} u INNER JOIN {node} n ON n.uid = u.uid AND n.type = :ctype";
@@ -357,10 +358,10 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
     $header = t('Users of the %role role', array('%role' => $role_type));
     //$result = pager_query("SELECT u.uid, u.name FROM {users} u INNER JOIN {users_roles} r ON r.uid = u.uid AND r.rid = %d WHERE u.status <> 0 AND u.access <> 0 ORDER BY u.name ASC", $number, $element_override, NULL, $role->rid);
 
-  	$query ->innerJoin('users_roles', 'r', 'r.uid = u.uid AND r.rid = :role', array('role'=>$role['rid']));
-  	$query = $query
-				   ->orderBy('name', 'ASC');
-			    
+    $query ->innerJoin('users_roles', 'r', 'r.uid = u.uid AND r.rid = :role', array('role'=>$role['rid']));
+    $query = $query
+           ->orderBy('name', 'ASC');
+          
 
     if ($include_more_link) {
       $count_query = "SELECT COUNT(u.uid) FROM {users} u INNER JOIN {users_roles} r ON r.uid = u.uid AND r.rid = :role";
@@ -373,10 +374,10 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   else if ($op == 'newest' && variable_get('user_list_newest', TRUE)) {
     $header = t('Newest Users');
     
-  	$query = $query
-  				  ->orderBy('created', 'DESC');
-				  
-  	
+    $query = $query
+            ->orderBy('created', 'DESC');
+          
+    
     if ($include_more_link) {
       $count = db_query("SELECT COUNT(u.uid) FROM {users} u")->fetchField();
     }
@@ -387,12 +388,12 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   else if ($op == 'other' && variable_get('user_list_alpha_listing', TRUE)) {
     $header = t('Users Not in A-Z');
     
-  	
-  	$query = $query
-    				->where("(LOWER(u.name) < 'a' OR LOWER(u.name) > 'z')")
-  				  ->orderBy('name', 'ASC');
-				  
-	  
+    
+    $query = $query
+            ->where("(LOWER(u.name) < 'a' OR LOWER(u.name) > 'z')")
+            ->orderBy('name', 'ASC');
+          
+    
     if ($include_more_link) {
       $count = db_query("SELECT COUNT(u.uid) FROM {users} u WHERE (LOWER(u.name) < 'a' OR LOWER(u.name) > 'z')")->fetchField();
     }
@@ -403,14 +404,14 @@ function _user_list ($op = 'all', $number = NULL, $paginated = TRUE, $include_mo
   else {
     $header = t('All Users'); 
 
-  	$query = $query
-  				  ->orderBy('name', 'ASC');
-				
-		if ($include_more_link) {
+    $query = $query
+            ->orderBy('name', 'ASC');
+        
+    if ($include_more_link) {
       $count = db_query("SELECT COUNT(u.uid) FROM {users} u")->fetchField(); // Ste: removed AND u.access <> 0
     }
     $empty_msg = t('There are currently no users.');
-	  
+    
   }
   
   // Execute Query
@@ -501,8 +502,9 @@ function theme_user_list_list ($vars = array()) {
   else {
     //$output .= theme('user_list_form', array('users'=>$users, 'title'=>''));
     //$output .= drupal_render($form); //Vahan 25.03.2011
-    $output .= drupal_render(drupal_get_form('user_list_form', $users));
- 
+    //$output .= drupal_render(drupal_get_form('user_list_form', $users));
+    $output .= drupal_render(drupal_get_form('user_list_search_form'));
+
     if ($include_more) {
       $output .= "  <div class=\"more\">$include_more</div>\n";
     }
@@ -521,25 +523,25 @@ function theme_user_list_list ($vars = array()) {
 /* TRYING TO GET FORM THEMEING TO WORK.. DOESNT WORK SO FAR
 /*
 function template_preprocess_user_list_user_list_form(&$variables) {
-	$variables['user_list_user_list_form'] = array();
-	$hidden = array();
-	
-	foreach(element_children($variables['form']) as $key) {
-		$type = $variables['form'][$key]['#type'];
-		if ($type == 'hidden' || $type == 'token') {
-			$hidden[] = drupal_render($variables['form'][$key]);
-		} else {
-			$variables['user_list_user_list_form'][$key] = drupal_render($variables['form'][$key]);
-		}
-	}
-	
-	$variables['user_list_user_list_form']['hidden'] = implode($hidden);
-	
-	$variables['user_list_user_list_form_form'] = implode($variables['user_list_user_list_form']);
+  $variables['user_list_user_list_form'] = array();
+  $hidden = array();
+  
+  foreach(element_children($variables['form']) as $key) {
+    $type = $variables['form'][$key]['#type'];
+    if ($type == 'hidden' || $type == 'token') {
+      $hidden[] = drupal_render($variables['form'][$key]);
+    } else {
+      $variables['user_list_user_list_form'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  
+  $variables['user_list_user_list_form']['hidden'] = implode($hidden);
+  
+  $variables['user_list_user_list_form_form'] = implode($variables['user_list_user_list_form']);
 }
 
 function theme_user_list_form($vars = array()) {
-	print "sadsadsadsa";
+  print "sadsadsadsa";
 }
 
 */
