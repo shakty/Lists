@@ -13,7 +13,6 @@ require_once 'includes/user_list.form.inc';
 require_once 'includes/user_list.export.inc';
 require_once 'includes/user_list.settings.inc';
 require_once 'includes/user_list.utils.inc';
-require_once 'includes/user_list.tabs.inc';
 
 
 /**
@@ -502,8 +501,7 @@ function theme_user_list_list ($vars = array()) {
   else {
     //$output .= theme('user_list_form', array('users'=>$users, 'title'=>''));
     //$output .= drupal_render($form); //Vahan 25.03.2011
-    //$output .= drupal_render(drupal_get_form('user_list_form', $users));
-    $output .= drupal_render(drupal_get_form('user_list_search_form'));
+    $output .= drupal_render(drupal_get_form('user_list_form', $users));
 
     if ($include_more) {
       $output .= "  <div class=\"more\">$include_more</div>\n";
